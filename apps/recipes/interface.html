@@ -1,0 +1,48 @@
+<html>
+    <head>
+        <link rel="stylesheet" href="../../css/spectre.min.css" />
+    </head>
+    <body>
+        <form id="recipe-form">
+            <label>
+                API Token
+                <input id="token" name="token"/>
+            </label>
+            <button type="submit">Save</button>
+        </form>
+        <script src="../../core/lib/interface.js"></script>
+        <script>
+            var tokenElement = document.getElementById("token");
+            var formElement = document.getElementById("recipe-form");
+
+            function loadExistingSettings(callback) {
+                Util.readStorageFile('settings.json', data => {
+                    if (data.length === 0) {
+                        callback({});
+                    } else {
+                        callback(JSON.parse(data));
+                    }
+                });
+            }
+
+            function loadToken() {
+                Util.showModal("Loading...");
+                loadExistingSettings(settings => {
+                    Util.hideModal();
+                    tokenElement.value = settings.token;
+                });
+            }
+            formElement.onsubmit = e => {
+                e.preventDefault();
+                e.stopPropagation();
+                loadExistingSettings(settings => {
+                    settings.token = tokenElement.value;
+                    Util.saveFile('settings.json', 'application/json', JSON.stringify(settings));
+                });
+            }
+            function onInit() {
+                loadToken();
+            }
+        </script>
+    </body>
+</html>

@@ -1,0 +1,23 @@
+{
+    "id": "recipes",
+    "name": "Recipe App",
+    "shortName": "Recipes",
+    "type": "app",
+    "version": "0.01",
+    "description": "Recipe application to display recipe ingredients and instructions as well as grocery lists.",
+    "icon": "app.png",
+    "tags": "tool",
+    "dependencies": [
+        {"messages":"module"}
+    ],
+    "supports": ["BANGLEJS2"],
+    "readme": "README.md",
+    "storage": [
+        {"name": "recipes.settings.json", "url": "settings.json"},
+        {"name": "recipes.offline.json", "url": "offline.json"}
+    ],
+    "data": [
+        {"name": "recipes.settings.json"},
+        {"name": "recipes.offline.json", "storageFile": true}
+    ]
+}
