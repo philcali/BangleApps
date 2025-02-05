@@ -29,7 +29,7 @@
                 Util.showModal("Loading...");
                 loadExistingSettings(settings => {
                     Util.hideModal();
-                    tokenElement.value = settings.token;
+                    tokenElement.value = settings.token || "";
                 });
             }
             formElement.onsubmit = e => {
@@ -37,7 +37,10 @@
                 e.stopPropagation();
                 loadExistingSettings(settings => {
                     settings.token = tokenElement.value;
-                    Util.saveFile('settings.json', 'application/json', JSON.stringify(settings));
+                    Util.showModal("Saving...")
+                    Util.writeStorage('settings.json', JSON.stringify(settings), () => {
+                        Util.hideModal();
+                    });
                 });
             }
             function onInit() {
