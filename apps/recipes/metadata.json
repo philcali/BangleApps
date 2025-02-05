@@ -12,7 +12,8 @@
     "interface": "interface.html",
     "storage": [
         {"name": "recipes.settings.js", "url": "settings.js"},
-        {"name": "recipes.app.js", "url": "app.js"}
+        {"name": "recipes.app.js", "url": "app.js"},
+        {"name": "recipes.img", "url": "app-icon.js", "evaluate": true}
     ],
     "data": [
         {"name": "recipes.json"},
