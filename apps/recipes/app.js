@@ -184,6 +184,10 @@ function recipeLists(nextToken) {
                 }
             }
             E.showMenu(menu);
+        })
+        .catch(error => {
+            console.error(error);
+            E.showAlert("Failed to list receipes", "Recipes").then(() => dashboardView());
         });
 }
 
