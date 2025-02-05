@@ -9,8 +9,10 @@
     "tags": "tool",
     "supports": ["BANGLEJS", "BANGLEJS2"],
     "readme": "README.md",
+    "interface": "interface.html",
     "storage": [
-        {"name": "recipes.settings.json", "url": "settings.json"}
+        {"name": "recipes.settings.json", "url": "settings.json"},
+        {"name": "recipes.app.js", "url": "app.js"}
     ],
     "data": [
         {"name": "recipes.settings.json"},
