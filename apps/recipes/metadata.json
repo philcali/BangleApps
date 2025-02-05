@@ -7,7 +7,7 @@
     "description": "Recipe application to display recipe ingredients and instructions as well as grocery lists.",
     "icon": "app.png",
     "tags": "tool",
-    "supports": ["BANGLEJS2"],
+    "supports": ["BANGLEJS", "BANGLEJS2"],
     "readme": "README.md",
     "storage": [
         {"name": "recipes.settings.json", "url": "settings.json"}
