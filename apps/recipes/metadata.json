@@ -7,9 +7,6 @@
     "description": "Recipe application to display recipe ingredients and instructions as well as grocery lists.",
     "icon": "app.png",
     "tags": "tool",
-    "dependencies": [
-        {"messages":"module"}
-    ],
     "supports": ["BANGLEJS2"],
     "readme": "README.md",
     "storage": [
