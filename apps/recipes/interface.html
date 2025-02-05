@@ -16,7 +16,7 @@
             var formElement = document.getElementById("recipe-form");
 
             function loadExistingSettings(callback) {
-                Util.readStorageFile('recipes.settings.json', data => {
+                Util.readStorage('recipes.settings.json', data => {
                     if (data.length === 0) {
                         callback({});
                     } else {

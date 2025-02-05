@@ -104,7 +104,7 @@ function groceryLists() {
         .list()
         .then(viewLists)
         .error(error => {
-            const offlineLists = Storage.readJSON("offline.json", true) || {items: []}
+            const offlineLists = Storage.readJSON("recipes.offline.json", true) || {items: []}
             viewLists(offlineLists);
         });
 }
@@ -172,7 +172,7 @@ function recipeLists(nextToken) {
         }
     };
     api.recipes()
-        .list({ limit: 5, nextToken })
+        .list({ limit: 5, nextToken: nextToken })
         .then(resp => {
             resp.items.forEach(item => {
                 menu[item.name.trim()] = () => viewRecipe(item);
@@ -186,7 +186,6 @@ function recipeLists(nextToken) {
             E.showMenu(menu);
         })
         .catch(error => {
-            console.error(error);
             E.showAlert("Failed to list receipes", "Recipes").then(() => dashboardView());
         });
 }
