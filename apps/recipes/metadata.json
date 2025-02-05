@@ -16,7 +16,7 @@
         {"name": "recipes.img", "url": "app-icon.js", "evaluate": true}
     ],
     "data": [
-        {"name": "recipes.json"},
+        {"name": "recipes.settings.json"},
         {"name": "recipes.offline.json"}
     ]
 }

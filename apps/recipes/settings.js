@@ -1,5 +1,5 @@
 (function(back) {
-    const SETTINGS_FILE = "settings.json";
+    const SETTINGS_FILE = "recipes.settings.json";
     const storage = require('Storage');
     const settings = Object.assign({
         offlineLists: true,

@@ -1,4 +1,4 @@
-const SETTINGS_FILE = 'settings.json';
+const SETTINGS_FILE = 'recipes.settings.json';
 const APP_URL = 'https://api.petroni.us';
 const Storage = require('Storage');
 const settings = Object.assign({

@@ -16,7 +16,7 @@
             var formElement = document.getElementById("recipe-form");
 
             function loadExistingSettings(callback) {
-                Util.readStorageFile('settings.json', data => {
+                Util.readStorageFile('recipes.settings.json', data => {
                     if (data.length === 0) {
                         callback({});
                     } else {
@@ -38,7 +38,7 @@
                 loadExistingSettings(settings => {
                     settings.token = tokenElement.value;
                     Util.showModal("Saving...")
-                    Util.writeStorage('settings.json', JSON.stringify(settings), () => {
+                    Util.writeStorage('recipes.settings.json', JSON.stringify(settings), () => {
                         Util.hideModal();
                     });
                 });
