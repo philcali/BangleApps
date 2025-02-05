@@ -10,8 +10,7 @@
     "supports": ["BANGLEJS2"],
     "readme": "README.md",
     "storage": [
-        {"name": "recipes.settings.json", "url": "settings.json"},
-        {"name": "recipes.offline.json", "url": "offline.json"}
+        {"name": "recipes.settings.json", "url": "settings.json"}
     ],
     "data": [
         {"name": "recipes.settings.json"},
