@@ -11,11 +11,11 @@
     "readme": "README.md",
     "interface": "interface.html",
     "storage": [
-        {"name": "recipes.settings.json", "url": "settings.json"},
+        {"name": "recipes.settings.js", "url": "settings.js"},
         {"name": "recipes.app.js", "url": "app.js"}
     ],
     "data": [
-        {"name": "recipes.settings.json"},
-        {"name": "recipes.offline.json", "storageFile": true}
+        {"name": "recipes.json"},
+        {"name": "recipes.offline.json"}
     ]
 }
