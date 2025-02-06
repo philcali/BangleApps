@@ -1,4 +1,5 @@
 const SETTINGS_FILE = 'recipes.settings.json';
+const OFFLINE_FILE = 'recipes.offline.json';
 const APP_URL = 'https://api.petroni.us';
 const Storage = require('Storage');
 const settings = Object.assign({
@@ -103,8 +104,8 @@ function groceryLists() {
     api.shoppingLists()
         .list()
         .then(viewLists)
-        .error(error => {
-            const offlineLists = Storage.readJSON("recipes.offline.json", true) || {items: []}
+        .catch(error => {
+            const offlineLists = Storage.readJSON(OFFLINE_FILE, true) || {items: []}
             viewLists(offlineLists);
         });
 }
@@ -163,9 +164,9 @@ function recipeLists(nextToken) {
     const menu = {
         '': { 'title': 'Recipes '},
         '< Back': () => {
-            const previousToken = recipePaginators.pop();
-            if (previousToken) {
-                recipeLists(previousToken);
+            const previousPage = recipePaginators.pop();
+            if (previousPage) {
+                previousPage();
             } else {
                 dashboardView();
             }
@@ -179,7 +180,7 @@ function recipeLists(nextToken) {
             });
             if (resp.nextToken) {
                 menu['Load More...'] = () => {
-                    recipePaginators.push(resp.nextToken);
+                    recipePaginators.push(() => recipeLists(nextToken));
                     recipeLists(resp.nextToken);
                 }
             }
