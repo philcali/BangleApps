@@ -144,10 +144,25 @@ function viewRecipeInstructions(recipe, instructions, back) {
     });
 }
 
+const recipePaginators = [];
+function previousRecipeList(shouldPop) {
+    let previousPage;
+    if (shouldPop) {
+        previousPage = recipePaginators.pop();
+    } else {
+        previousPage = recipePaginators[recipePaginators.length -1];
+    }
+    if (previousPage) {
+        previousPage();
+    } else {
+        dashboardView();
+    }
+}
+
 function viewRecipe(recipe) {
     const menu = {
         '': { 'title': recipe.name },
-        '< Back': () => recipeLists(),
+        '< Back': () => previousRecipeList(false),
     };
     if (recipe.ingredients.length> 0) {
         menu['Ingredients'] = () => viewRecipeIngredients(recipe, recipe.ingredients);
@@ -158,19 +173,11 @@ function viewRecipe(recipe) {
     E.showMenu(menu);
 }
 
-const recipePaginators = [];
 function recipeLists(nextToken) {
     E.showMessage("Loading...", "Recipes");
     const menu = {
         '': { 'title': 'Recipes '},
-        '< Back': () => {
-            const previousPage = recipePaginators.pop();
-            if (previousPage) {
-                previousPage();
-            } else {
-                dashboardView();
-            }
-        }
+        '< Back': () => previousRecipeList(true),
     };
     api.recipes()
         .list({ limit: 4, stripFields: "thumbnail", nextToken: nextToken })
