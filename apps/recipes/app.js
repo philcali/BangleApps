@@ -172,7 +172,7 @@ function recipeLists(nextToken) {
         }
     };
     api.recipes()
-        .list({ limit: 5, nextToken: nextToken })
+        .list({ limit: 4, stripFields: "thumbnail", nextToken: nextToken })
         .then(resp => {
             resp.items.forEach(item => {
                 menu[item.name.trim()] = () => viewRecipe(item);
