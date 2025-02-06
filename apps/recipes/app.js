@@ -110,10 +110,10 @@ function groceryLists() {
         });
 }
 
-function viewRecipeIngredients(recipe, ingredients) {
+function viewRecipeIngredients(recipe, ingredients, nextToken) {
     const menu = {
         '': { 'title': 'Ingredients' },
-        '< Back': () => viewRecipe(recipe),
+        '< Back': () => viewRecipe(recipe, nextToken),
     };
     ingredients.forEach(ingredient => {
         menu[`${ingredient.name.trim()} ${ingredient.amount} ${ingredient.measurement}`] = () => {};
@@ -121,7 +121,7 @@ function viewRecipeIngredients(recipe, ingredients) {
     E.showMenu(menu);
 }
 
-function viewRecipeInstructions(recipe, instructions, back) {
+function viewRecipeInstructions(recipe, instructions, nextToken) {
     let fontSize = "6x15";
     g.setFont(fontSize);
     let lines = [].concat(
@@ -132,7 +132,7 @@ function viewRecipeInstructions(recipe, instructions, back) {
     E.showScroller({
         h: g.getFontHeight(),
         c: lines.length,
-        back: () => back ? back() : viewRecipe(recipe),
+        back: () => viewRecipe(recipe, nextToken),
         draw: (i, r) => {
             g.setBgColor(i === 0 ? g.theme.bg2 : g.theme.bg)
                 .setColor(i === 0 ? g.theme.fg2 : g.theme.fg)
@@ -145,13 +145,8 @@ function viewRecipeInstructions(recipe, instructions, back) {
 }
 
 const recipePaginators = [];
-function previousRecipeList(shouldPop) {
-    let previousPage;
-    if (shouldPop) {
-        previousPage = recipePaginators.pop();
-    } else {
-        previousPage = recipePaginators[recipePaginators.length -1];
-    }
+function previousRecipeList() {
+    const previousPage = recipePaginators.pop();
     if (previousPage) {
         previousPage();
     } else {
@@ -159,16 +154,16 @@ function previousRecipeList(shouldPop) {
     }
 }
 
-function viewRecipe(recipe) {
+function viewRecipe(recipe, nextToken) {
     const menu = {
         '': { 'title': recipe.name },
-        '< Back': () => previousRecipeList(false),
+        '< Back': () => recipeLists(nextToken),
     };
-    if (recipe.ingredients.length> 0) {
-        menu['Ingredients'] = () => viewRecipeIngredients(recipe, recipe.ingredients);
+    if (recipe.ingredients.length > 0) {
+        menu['Ingredients'] = () => viewRecipeIngredients(recipe, recipe.ingredients, nextToken);
     }
     if (recipe.instructions) {
-        menu['Instructions'] = () => viewRecipeInstructions(recipe, recipe.instructions);
+        menu['Instructions'] = () => viewRecipeInstructions(recipe, recipe.instructions, nextToken);
     }
     E.showMenu(menu);
 }
@@ -177,7 +172,7 @@ function recipeLists(nextToken) {
     E.showMessage("Loading...", "Recipes");
     const menu = {
         '': { 'title': 'Recipes '},
-        '< Back': () => previousRecipeList(true),
+        '< Back': () => previousRecipeList(),
     };
     api.recipes()
         .list({ limit: 4, stripFields: "thumbnail", nextToken: nextToken })
