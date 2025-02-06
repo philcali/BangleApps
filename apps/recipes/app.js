@@ -178,7 +178,7 @@ function recipeLists(nextToken) {
         .list({ limit: 4, stripFields: "thumbnail", nextToken: nextToken })
         .then(resp => {
             resp.items.forEach(item => {
-                menu[item.name.trim()] = () => viewRecipe(item);
+                menu[item.name.trim()] = () => viewRecipe(item, nextToken);
             });
             if (resp.nextToken) {
                 menu['Load More...'] = () => {
