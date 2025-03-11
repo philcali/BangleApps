@@ -1,7 +1,9 @@
 const SETTINGS_FILE = 'recipes.settings.json';
 const OFFLINE_FILE = 'recipes.offline.json';
+const MAX_ITEMS = 4;
 const APP_URL = 'https://api.petroni.us';
 const Storage = require('Storage');
+const Layout = require('Layout');
 const settings = Object.assign({
     offlineLists: true,
 }, Storage.readJSON(SETTINGS_FILE, true) || {});
@@ -71,6 +73,14 @@ class RecipeApi {
     shoppingLists() {
         return new ResourceService(`${APP_URL}/lists`, this.settings);
     }
+
+    audits() {
+        return new ResourceService(`${APP_URL}/audits`, this.settings);
+    }
+
+    shares() {
+        return new ResourceService(`${APP_URL}/shares`, this.settings);
+    }
 }
 
 const api = new RecipeApi(settings);
@@ -102,9 +112,9 @@ function groceryLists() {
         E.showMenu(menu);
     }
     api.shoppingLists()
-        .list()
+        .list({ limit: MAX_ITEMS })
         .then(viewLists)
-        .catch(error => {
+        .catch(() => {
             const offlineLists = Storage.readJSON(OFFLINE_FILE, true) || {items: []}
             viewLists(offlineLists);
         });
@@ -171,11 +181,11 @@ function viewRecipe(recipe, nextToken) {
 function recipeLists(nextToken) {
     E.showMessage("Loading...", "Recipes");
     const menu = {
-        '': { 'title': 'Recipes '},
+        '': { 'title': 'Recipes' },
         '< Back': () => previousRecipeList(),
     };
     api.recipes()
-        .list({ limit: 4, stripFields: "thumbnail", nextToken: nextToken })
+        .list({ limit: MAX_ITEMS, stripFields: "thumbnail", nextToken: nextToken })
         .then(resp => {
             resp.items.forEach(item => {
                 menu[item.name.trim()] = () => viewRecipe(item, nextToken);
@@ -188,9 +198,133 @@ function recipeLists(nextToken) {
             }
             E.showMenu(menu);
         })
-        .catch(error => {
+        .catch(() => {
             E.showAlert("Failed to list receipes", "Recipes").then(() => dashboardView());
         });
+}
+
+function auditList(nextToken) {
+    E.showMessage("Loading...", "Activity");
+    let btns = [{
+        type: 'btn',
+        font: '6x8',
+        label: 'Back',
+        cb: () => previousRecipeList(),
+        pad: 1,
+    }];
+    const colors = {
+        'CREATED': '#008000',
+        'UPDATED': '#0000ff',
+        'REMOVED': '#ff0000',
+    }
+    api.audits()
+        .list({
+            limit: MAX_ITEMS,
+            nextToken: nextToken,
+            sortOrder: 'descending',
+            stripFields: 'thumbnail,items',
+        })
+        .then(resp => {
+            if (resp.nextToken !== null && resp.nextToken !== undefined) {
+                btns.push({
+                    type: 'btn',
+                    font: '6x8',
+                    label: 'More',
+                    pad: 1,
+                    cb: () => {
+                        recipePaginators.push(() => auditList(nextToken));
+                        auditList(resp.nextToken);
+                    }
+                });
+            }
+            if (resp.items.length === 0) {
+                E.showAlert("No more activity", "Activity").then(() => previousRecipeList());
+            } else {
+                const layout = new Layout({
+                    type: 'v', c: [].concat(
+                        resp.items.map(item => {
+                            return {
+                                type: 'h',
+                                c: [{
+                                    type: 'custom',
+                                    width: 32,
+                                    filly: 1,
+                                    col: colors[item.action],
+                                    id: `${item.id}:color`,
+                                    render: l => g.fillCircle(l.x + (l.w / 2), l.y + (l.h / 2), 8),
+                                }, {
+                                    type: 'txt',
+                                    font: '6x15',
+                                    label: item.resourceType,
+                                    id: item.id,
+                                }, {
+                                    type: 'txt',
+                                    font: '6x15',
+                                    label: '>',
+                                    id: `${item.id}:arrow`,
+                                }]
+                            };
+                        }),
+                        [{type: 'h', btns}],
+                    ),
+                }, {
+                    back: () => dashboardView(),
+                });
+                g.reset().clearRect(Bangle.appRect);
+                layout.render();
+            }
+        })
+        .catch(() => {
+            E.showAlert("Failed to list activity", "Activity").then(() => dashboardView());
+        });
+}
+
+function loadSharingRequests(title, nextToken) {
+    E.showMessage("Loading...", title);
+    const menu = {
+        '': { 'title': title },
+        '< Back': () => previousRecipeList(),
+    };
+    let params = { limit: MAX_ITEMS, nextToken: nextToken };
+    if (title === 'With Me') {
+        params['status'] = 'REQUESTED';
+    }
+    api.shares()
+        .list(params)
+        .then(resp => {
+            if (resp.items.length === 0) {
+                E.showAlert("No open share requests", title).then(() => previousRecipeList());
+            } else {
+                resp.items.forEach(item => {
+                    if (title === 'With Me') {
+                        username = item.requester.split('@')[0];
+                        menu[username] = () => {};
+                    } else {
+                        username = (item.id === item.approver ? item.requester : item.approver).split('@')[0];
+                        menu[username] = () => {};
+                    }
+                });
+                if (resp.nextToken) {
+                    menu['Load More...'] = () => {
+                        recipePaginators.push(() => loadSharingRequests(title, nextToken));
+                        loadSharingRequests(title, resp.nextToken);
+                    };
+                }
+                E.showMenu(menu);
+            }
+        })
+        .catch(() => {
+            E.showAlert("Failed to list share requests", title).then(() => dashboardView());
+        });
+}
+
+function sharingDashboard() {
+    E.showMenu({
+        '': { 'title': 'Sharing' },
+        '< Back': () => dashboardView(),
+        'With Me': () => loadSharingRequests("With Me"),
+        'From Me': () => loadSharingRequests("From Me"),
+    })
 }
 
 function dashboardView() {
@@ -199,6 +333,8 @@ function dashboardView() {
         '< Back': () => load(),
         'Recipes': () => recipeLists(),
         'Groceries': () => groceryLists(),
+        'Sharing': () => sharingDashboard(),
+        'Activity': () => auditList(),
     });
 }
 
