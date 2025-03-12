@@ -265,7 +265,7 @@ function auditList(nextToken) {
                                 }]
                             };
                         }),
-                        [{type: 'h', btns}],
+                        [{type: 'h', c: btns}],
                     ),
                 }, {
                     back: () => dashboardView(),
@@ -275,8 +275,7 @@ function auditList(nextToken) {
             }
         })
         .catch(e => {
-            console.error(e);
-            E.showAlert(JSON.stringify(e), "Activity").then(() => dashboardView());
+            E.showAlert("Failed to load activity logs", "Activity").then(() => dashboardView());
         });
 }
 
