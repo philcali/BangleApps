@@ -238,7 +238,7 @@ function auditList(nextToken) {
                 });
             }
             if (resp.items.length === 0) {
-                E.showAlert("No more activity", "Activity").then(() => previousRecipeList());
+                E.showAlert("No more activity logs", "Activity").then(() => previousRecipeList());
             } else {
                 const layout = new Layout({
                     type: 'v', c: [].concat(
@@ -274,8 +274,9 @@ function auditList(nextToken) {
                 layout.render();
             }
         })
-        .catch(() => {
-            E.showAlert("Failed to list activity", "Activity").then(() => dashboardView());
+        .catch(e => {
+            console.error(e);
+            E.showAlert(JSON.stringify(e), "Activity").then(() => dashboardView());
         });
 }
 
