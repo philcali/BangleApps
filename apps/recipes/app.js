@@ -14,15 +14,22 @@ class ResourceService {
         this.settings = settings;
     }
 
-    request(url, method, options) {
+    request(url, method, options, body) {
         let overrideUrl = url;
         let queryParams = [];
+        let headers = {
+            'Authorization': `Bearer ${this.settings.token}`,
+        };
         let bangleOptions = {
             method: method,
-            headers: {
-                'Authorization': `Bearer ${this.settings.token}`,
-            }
+            headers: headers,
         };
+        if (body) {
+            let payload = JSON.stringify(body);
+            headers['Content-Type'] = 'application/json';
+            headers['Content-Length'] = payload.length;
+            bangleOptions.body = payload;
+        }
         for (let key in options) {
             if (key === 'queryparams') {
                 for (let p in options[key]) {
@@ -58,6 +65,14 @@ class ResourceService {
 
     resource(id, resourceName) {
         return new ResourceService(`${this.url}/${id}/${resourceName}`, this.settings);
+    }
+
+    delete(itemId) {
+        return this.request(`${this.url}/${itemId}`, 'DELETE', {});
+    }
+
+    put(itemId, body) {
+        return this.request(`${this.url}/${itemId}`, 'PUT', {}, body);
     }
 }
 
@@ -243,6 +258,7 @@ function auditList(nextToken) {
                 const layout = new Layout({
                     type: 'v', c: [].concat(
                         resp.items.map(item => {
+                            const createTime = new Date(item.createTime);
                             return {
                                 type: 'h',
                                 c: [{
@@ -255,7 +271,19 @@ function auditList(nextToken) {
                                 }, {
                                     type: 'txt',
                                     font: '6x15',
-                                    label: item.resourceType,
+                                    label: `${item.resourceType} ${createTime.getMonth() - 1}/${createTime.getDate()}`,
+                                    cb: l => {
+                                        E.showPrompt([
+                                            `${item.resourceType} was ${item.action.toLowerCase()}`,
+                                            "Delete this record?"
+                                        ].join("\n"), `${item.resourceType}`).then(() => {
+                                            const back = () => auditList(nextToken);
+                                            api.audits
+                                                .delete(item.id)
+                                                .then(back)
+                                                .catch(() => E.showAlert("Failed to delete activity", "Failure").then(back));
+                                        });
+                                    },
                                     id: item.id,
                                 }, {
                                     type: 'txt',
@@ -295,18 +323,42 @@ function loadSharingRequests(title, nextToken) {
             if (resp.items.length === 0) {
                 E.showAlert("No open share requests", title).then(() => previousRecipeList());
             } else {
+                const back = () => loadSharingRequests(title, nextToken);
                 resp.items.forEach(item => {
                     if (title === 'With Me') {
                         username = item.requester.split('@')[0];
-                        menu[username] = () => {};
+                        const approvalThunk = status => () => {
+                            E.showPrompt(`Mark as ${status.toLowerCase()}?`, username)
+                                .then(() => {
+                                    api.shares()
+                                        .put(item.id, { approvalStatus: status })
+                                        .then(back)
+                                        .catch(() => E.showAlert(`Failed to mark as ${status.toLowerCase()}`, username).then(back));
+                                });
+                        };
+                        menu[username] = () => {
+                            E.showMenu({
+                                '': { 'title': username },
+                                '< Back': back,
+                                'Approve': approvalThunk("APPROVED"),
+                                'Reject': approvalThunk("REJECTED"),
+                            });
+                        };
                     } else {
                         username = (item.id === item.approver ? item.requester : item.approver).split('@')[0];
-                        menu[username] = () => {};
+                        menu[username] = () => {
+                            E.showPrompt("Delete request?", username).then(() => {
+                                api.shares()
+                                    .delete(item.id)
+                                    .then(back)
+                                    .catch(() => E.showAlert("Failed to remove request", username).then(back));
+                            });
+                        };
                     }
                 });
                 if (resp.nextToken) {
                     menu['Load More...'] = () => {
-                        recipePaginators.push(() => loadSharingRequests(title, nextToken));
+                        recipePaginators.push(back);
                         loadSharingRequests(title, resp.nextToken);
                     };
                 }
