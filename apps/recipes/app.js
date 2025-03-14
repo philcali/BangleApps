@@ -230,7 +230,7 @@ function auditList(nextToken) {
     const colors = {
         'CREATED': '#008000',
         'UPDATED': '#0000ff',
-        'REMOVED': '#ff0000',
+        'DELETED': '#ff0000',
     }
     api.audits()
         .list({
