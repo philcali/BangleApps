@@ -240,6 +240,7 @@ function auditList(nextToken) {
             stripFields: 'thumbnail,items',
         })
         .then(resp => {
+            const back = () => auditList(nextToken);
             if (resp.nextToken !== null && resp.nextToken !== undefined) {
                 btns.push({
                     type: 'btn',
@@ -247,7 +248,7 @@ function auditList(nextToken) {
                     label: 'More',
                     pad: 1,
                     cb: () => {
-                        recipePaginators.push(() => auditList(nextToken));
+                        recipePaginators.push(back);
                         auditList(resp.nextToken);
                     }
                 });
@@ -259,7 +260,6 @@ function auditList(nextToken) {
                     type: 'v', c: [].concat(
                         resp.items.map(item => {
                             const createTime = new Date(item.createTime);
-
                             return {
                                 type: 'h',
                                 c: [{
@@ -277,12 +277,13 @@ function auditList(nextToken) {
                                         E.showPrompt([
                                             `${item.resourceType} was ${item.action.toLowerCase()}`,
                                             "Delete this record?"
-                                        ].join("\n"), {title: item.resourceType}).then(() => {
-                                            const back = () => auditList(nextToken);
-                                            api.audits()
-                                                .remove(item.id)
-                                                .then(back)
-                                                .catch(() => E.showAlert("Failed to delete activity", "Failure").then(back));
+                                        ].join("\n"), {title: item.resourceType}).then(selected => {
+                                            if (selected) {
+                                                api.audits()
+                                                    .remove(item.id)
+                                                    .then(back)
+                                                    .catch(() => E.showAlert("Failed to delete activity", item.resourceType).then(back));
+                                            }
                                         });
                                     },
                                     id: item.id,
@@ -328,14 +329,18 @@ function loadSharingRequests(title, nextToken) {
                 resp.items.forEach(item => {
                     if (title === 'With Me') {
                         username = item.requester.split('@')[0];
-                        const approvalThunk = status => () => {
-                            E.showPrompt(`Mark as ${status.toLowerCase()}?`, { title: username })
-                                .then(() => {
-                                    api.shares()
-                                        .put(item.id, { approvalStatus: status })
-                                        .then(back)
-                                        .catch(() => E.showAlert(`Failed to mark as ${status.toLowerCase()}`, username).then(back));
-                                });
+                        const approvalThunk = status => {
+                            return () => {
+                                E.showPrompt(`Mark as ${status.toLowerCase()}?`, { title: username })
+                                    .then(selected => {
+                                        if (selected) {
+                                            api.shares()
+                                                .put(item.id, { approvalStatus: status })
+                                                .then(back)
+                                                .catch(() => E.showAlert(`Failed to mark as ${status.toLowerCase()}`, username).then(back));
+                                        }
+                                    });
+                            };
                         };
                         menu[username] = () => {
                             E.showMenu({
@@ -348,11 +353,13 @@ function loadSharingRequests(title, nextToken) {
                     } else {
                         username = (item.id === item.approver ? item.requester : item.approver).split('@')[0];
                         menu[username] = () => {
-                            E.showPrompt("Delete request?", username).then(() => {
-                                api.shares()
-                                    .remove(item.id)
-                                    .then(back)
-                                    .catch(() => E.showAlert("Failed to remove request", username).then(back));
+                            E.showPrompt("Delete request?", username).then(selected => {
+                                if (selected) {
+                                    api.shares()
+                                        .remove(item.id)
+                                        .then(back)
+                                        .catch(() => E.showAlert("Failed to remove request", username).then(back));
+                                }
                             });
                         };
                     }
