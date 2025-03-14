@@ -276,7 +276,7 @@ function auditList(nextToken) {
                                         E.showPrompt([
                                             `${item.resourceType} was ${item.action.toLowerCase()}`,
                                             "Delete this record?"
-                                        ].join("\n"), `${item.resourceType}`).then(() => {
+                                        ].join("\n"), {title: item.resourceType}).then(() => {
                                             const back = () => auditList(nextToken);
                                             api.audits()
                                                 .remove(item.id)
@@ -328,7 +328,7 @@ function loadSharingRequests(title, nextToken) {
                     if (title === 'With Me') {
                         username = item.requester.split('@')[0];
                         const approvalThunk = status => () => {
-                            E.showPrompt(`Mark as ${status.toLowerCase()}?`, username)
+                            E.showPrompt(`Mark as ${status.toLowerCase()}?`, { title: username })
                                 .then(() => {
                                     api.shares()
                                         .put(item.id, { approvalStatus: status })
