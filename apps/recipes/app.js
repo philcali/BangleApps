@@ -67,7 +67,7 @@ class ResourceService {
         return new ResourceService(`${this.url}/${id}/${resourceName}`, this.settings);
     }
 
-    delete(itemId) {
+    remove(itemId) {
         return this.request(`${this.url}/${itemId}`, 'DELETE', {});
     }
 
@@ -278,8 +278,8 @@ function auditList(nextToken) {
                                             "Delete this record?"
                                         ].join("\n"), `${item.resourceType}`).then(() => {
                                             const back = () => auditList(nextToken);
-                                            api.audits
-                                                .delete(item.id)
+                                            api.audits()
+                                                .remove(item.id)
                                                 .then(back)
                                                 .catch(() => E.showAlert("Failed to delete activity", "Failure").then(back));
                                         });
@@ -349,7 +349,7 @@ function loadSharingRequests(title, nextToken) {
                         menu[username] = () => {
                             E.showPrompt("Delete request?", username).then(() => {
                                 api.shares()
-                                    .delete(item.id)
+                                    .remove(item.id)
                                     .then(back)
                                     .catch(() => E.showAlert("Failed to remove request", username).then(back));
                             });
