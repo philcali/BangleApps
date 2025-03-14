@@ -283,6 +283,8 @@ function auditList(nextToken) {
                                                     .remove(item.id)
                                                     .then(back)
                                                     .catch(() => E.showAlert("Failed to delete activity", item.resourceType).then(back));
+                                            } else {
+                                                back();
                                             }
                                         });
                                     },
@@ -338,6 +340,8 @@ function loadSharingRequests(title, nextToken) {
                                                 .put(item.id, { approvalStatus: status })
                                                 .then(back)
                                                 .catch(() => E.showAlert(`Failed to mark as ${status.toLowerCase()}`, username).then(back));
+                                        } else {
+                                            back();
                                         }
                                     });
                             };
@@ -353,12 +357,14 @@ function loadSharingRequests(title, nextToken) {
                     } else {
                         username = (item.id === item.approver ? item.requester : item.approver).split('@')[0];
                         menu[username] = () => {
-                            E.showPrompt("Delete request?", username).then(selected => {
+                            E.showPrompt("Delete request?", { title: username }).then(selected => {
                                 if (selected) {
                                     api.shares()
                                         .remove(item.id)
                                         .then(back)
                                         .catch(() => E.showAlert("Failed to remove request", username).then(back));
+                                } else {
+                                    back();
                                 }
                             });
                         };
