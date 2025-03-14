@@ -107,8 +107,13 @@ function viewGroceryList(item) {
     };
     item.items.forEach(listItem => {
         menu[listItem.name.trim()] = {
-        value: listItem.completed,
-        onchange: value => listItem.completed = value,
+            value: listItem.completed,
+            onchange: value => {
+                listItem.completed = value;
+                if (settings.offlineLists) {
+                    Storage.writeJSON(OFFLINE_FILE, item);
+                }
+            },
         };
     });
     E.showMenu(menu);
@@ -120,18 +125,42 @@ function groceryLists() {
         '': { 'title': 'Groceries' },
         '< Back': () => dashboardView(),
     };
-    function viewLists(lists) {
+    function viewLists(lists, online) {
         lists.items.forEach(item => {
             menu[item.name.trim()] = () => viewGroceryList(item);
         });
+        if (online && settings.offlineLists) {
+            menu["Sync Online"] = () => {
+                function nextList(i) {
+                    if (i >= lists.items.length) {
+                        groceryLists();
+                    } else {
+                        E.showMessage(`Syncing ${item.name}...`, "Groceries");
+                        api.shoppingLists()
+                            .put(item.id, {
+                                name: item.name,
+                                items: item.items,
+                            })
+                            .finally(() => {
+                                nextList(i + 1);
+                            });
+                    }
+                }
+                nextList(0);
+            };
+        }
         E.showMenu(menu);
     }
     api.shoppingLists()
         .list({ limit: MAX_ITEMS })
-        .then(viewLists)
+        .then(resp => viewLists(resp, true))
         .catch(() => {
-            const offlineLists = Storage.readJSON(OFFLINE_FILE, true) || {items: []}
-            viewLists(offlineLists);
+            if (settings.offlineLists) {
+                const offlineLists = Storage.readJSON(OFFLINE_FILE, true) || {items: []};
+                viewLists(offlineLists);
+            } else {
+                E.showAlert("Failed to load groceries", "Groceries").then(() => dashboardView());
+            }
         });
 }
 
