@@ -281,8 +281,8 @@ function auditList(nextToken) {
                                             if (selected) {
                                                 api.audits()
                                                     .remove(item.id)
-                                                    .then(back)
-                                                    .catch(() => E.showAlert("Failed to delete activity", item.resourceType).then(back));
+                                                    .then(() => back())
+                                                    .catch(() => E.showAlert("Failed to delete activity", item.resourceType).then(() => back()));
                                             } else {
                                                 back();
                                             }
@@ -338,8 +338,8 @@ function loadSharingRequests(title, nextToken) {
                                         if (selected) {
                                             api.shares()
                                                 .put(item.id, { approvalStatus: status })
-                                                .then(back)
-                                                .catch(() => E.showAlert(`Failed to mark as ${status.toLowerCase()}`, username).then(back));
+                                                .then(() => back())
+                                                .catch(() => E.showAlert(`Failed to mark as ${status.toLowerCase()}`, username).then(() => back()));
                                         } else {
                                             back();
                                         }
@@ -361,8 +361,8 @@ function loadSharingRequests(title, nextToken) {
                                 if (selected) {
                                     api.shares()
                                         .remove(item.id)
-                                        .then(back)
-                                        .catch(() => E.showAlert("Failed to remove request", username).then(back));
+                                        .then(() => back())
+                                        .catch(() => E.showAlert("Failed to remove request", username).then(() => back()));
                                 } else {
                                     back();
                                 }
