@@ -259,6 +259,7 @@ function auditList(nextToken) {
                     type: 'v', c: [].concat(
                         resp.items.map(item => {
                             const createTime = new Date(item.createTime);
+
                             return {
                                 type: 'h',
                                 c: [{
@@ -271,7 +272,7 @@ function auditList(nextToken) {
                                 }, {
                                     type: 'txt',
                                     font: '6x15',
-                                    label: `${item.resourceType} ${createTime.getMonth() - 1}/${createTime.getDate()}`,
+                                    label: `${item.resourceType} ${String(createTime.getMonth() + 1).padStart(2, '0')}/${String(createTime.getDate()).padStart(2, '0')}`,
                                     cb: l => {
                                         E.showPrompt([
                                             `${item.resourceType} was ${item.action.toLowerCase()}`,
